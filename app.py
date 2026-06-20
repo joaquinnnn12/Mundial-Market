@@ -5,10 +5,9 @@ import os
 # 1. ESTRUCTURA DEL REGISTRO (Actualizado con Precio)
 # ==========================================
 class RegistroCamiseta:
-    def __init__(self, id_registro, nya, contra, pais_cam, liga, equipo, nom_jug, num_jug, vender, precio=0.0):
+    def __init__(self, id_registro, nya, pais_cam, liga, equipo, nom_jug, num_jug, vender, precio=0.0):
         self.id = id_registro
         self.nya = nya[:30]
-        self.contra = contra[:8]
         self.pais_cam = pais_cam[:30]
         self.liga = liga[:30]
         self.equipo = equipo[:30]
@@ -19,7 +18,7 @@ class RegistroCamiseta:
 
     def convertir_a_linea(self):
         # Agregamos el precio al final de la línea separado por '|'
-        return f"{self.id}|{self.nya}|{self.contra}|{self.pais_cam}|{self.liga}|{self.equipo}|{self.nom_jug}|{self.num_jug}|{self.vender}|{self.precio}\n"
+        return f"{self.id}|{self.nya}|{self.pais_cam}|{self.liga}|{self.equipo}|{self.nom_jug}|{self.num_jug}|{self.vender}|{self.precio}\n"
 
 # ==========================================
 # 2. OPERACIONES CON EL ARCHIVO .TXT
@@ -38,20 +37,19 @@ def leer_desde_archivo(nombre_archivo="mundial_market.txt"):
             linea = linea.strip()
             if linea:
                 campos = linea.split('|')
-                es_venta = campos[8] == 'True'
                 
-                # Manejo de compatibilidad: por si hay camisetas viejas sin precio guardadas
-                precio_guardado = float(campos[9]) if len(campos) > 9 else 0.0
+                # Como quitamos la contraseña, los índices bajaron 1 posición
+                es_venta = campos[7] == 'True'
+                precio_guardado = float(campos[8]) if len(campos) > 8 else 0.0
                 
                 reg = RegistroCamiseta(
                     id_registro=campos[0], 
                     nya=campos[1], 
-                    contra=campos[2], 
-                    pais_cam=campos[3],
-                    liga=campos[4], 
-                    equipo=campos[5], 
-                    nom_jug=campos[6], 
-                    num_jug=int(campos[7]), 
+                    pais_cam=campos[2],
+                    liga=campos[3], 
+                    equipo=campos[4], 
+                    nom_jug=campos[5], 
+                    num_jug=int(campos[6]), 
                     vender=es_venta,
                     precio=precio_guardado # Pasamos el precio al registro
                 )
@@ -97,7 +95,6 @@ elif eleccion == "Publicar Camiseta":
     with st.form("form_registro", clear_on_submit=True):
         st.write("Complete los datos de la camiseta:")
         nya = st.text_input("Nombre y Apellido (NyA)", max_chars=30)
-        contra = st.text_input("Contraseña", max_chars=8, type="password")
         pais_cam = st.text_input("País del club (pais_cam)", max_chars=30)
         liga = st.text_input("Liga (liga)", max_chars=30)
         equipo = st.text_input("Nombre del equipo (equipo)", max_chars=30)
@@ -116,15 +113,15 @@ elif eleccion == "Publicar Camiseta":
         submit = st.form_submit_button("Publicar Camiseta")
         
         if submit:
-            if not nya or not contra or not equipo:
-                st.error("Por favor complete los campos obligatorios (NyA, Contraseña, Equipo).")
+            if not nya or not equipo:
+                st.error("Por favor complete los campos obligatorios (NyA, Equipo).")
             else:
                 lista_actual = leer_desde_archivo()
                 nuevo_id = str(len(lista_actual) + 1)
                 vender_booleano = True if opc_vender == "Vender" else False
                 
                 nuevo_registro = RegistroCamiseta(
-                    nuevo_id, nya, contra, pais_cam, liga, equipo, nom_jug, num_jug, vender_booleano, precio_venta
+                    nuevo_id, nya, pais_cam, liga, equipo, nom_jug, num_jug, vender_booleano, precio_venta
                 )
                 guardar_en_archivo(nuevo_registro)
                 st.success(f"¡Éxito! Camiseta publicada en el mercado con el ID: {nuevo_id}")
